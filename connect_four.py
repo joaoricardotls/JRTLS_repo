@@ -226,4 +226,4 @@ Whoever gets four sequence markers in a row, column or diagonal wins the game.
 
 
 # Play!
-# game_on()
+game_on()
