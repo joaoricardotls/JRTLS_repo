@@ -162,4 +162,4 @@ def game_on():
 
 
 # Play!
-# game_on()
+game_on()
