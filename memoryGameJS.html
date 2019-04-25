@@ -1,0 +1,299 @@
+<!-- SIMPLE MEMORY GAME USING HTML, CSS AND JAVASCRIPT -->
+<!-- From scratch, by João Ricardo, April 24th 2019 -->
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Memory Game</title>
+
+    <style>
+    
+        *,
+        *::after,
+        *::before {
+            margin: 0;
+            padding: 0;
+            outline: none;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 62.5%;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: horizontal;
+            -webkit-box-direction: normal;
+            -ms-flex-flow: row wrap;
+            flex-flow: row wrap;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            -ms-flex-line-pack: start;
+            align-content: flex-start;
+        }
+
+        .image {
+            width: 15rem;
+            height: 15rem;
+            margin: 2rem;
+            position: relative;
+            -webkit-perspective: 80rem;
+            perspective: 80rem;
+        }
+
+        .image__back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            background-image: -webkit-gradient(linear, left top, right bottom, from(orangered), to(#ff7300));
+            background-image: linear-gradient(to right bottom, orangered, #ff7300);
+            -webkit-transition: all 0.5s;
+            transition: all 0.5s;
+            -webkit-box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+
+        .image__front {
+            width: 100%;
+            height: 100%;
+            -webkit-box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+            position: absolute;
+            top: 0;
+            left: 0;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            z-index: 0;
+            -webkit-transition: all 0.5s;
+            transition: all 0.5s;
+        }
+
+        .blank {
+            width: 15rem;
+            height: 15rem;
+            margin: 2rem;
+            position: relative;
+            background-color: white;
+        }
+
+        .rotate-180 {
+            -webkit-transform: rotateY(-180deg);
+            transform: rotateY(-180deg);
+        }
+
+        .rotate180 {
+            -webkit-transform: rotateY(180deg);
+            transform: rotateY(180deg);
+        }
+    
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container" id="container">
+
+        <!-- TEMPLATE CARD ELEMENT:
+
+        <div class="image">
+            <div class="image__back"></div>
+            <img src="#" class="image__front rotate-180">
+        </div> -->
+
+    </div>
+
+    <script>
+
+        // VARIABLES
+
+        let container = document.getElementById('container'),
+            images = document.getElementsByClassName('image'),
+            flagClicked = false,
+            flagFirstPictureClicked = false,
+            first = { element: undefined, source: undefined },
+            second = { element: undefined, source: undefined };
+
+        // Array with images sources
+        let sourcesArray = [
+            'https://i.postimg.cc/23KqbTnD/1.jpg',
+            'https://i.postimg.cc/w7R1hJks/2.jpg',
+            'https://i.postimg.cc/pmNpkT0c/3.jpg',
+            'https://i.postimg.cc/PLTNs7nm/4.jpg',
+            'https://i.postimg.cc/dZkVjPGK/5.jpg',
+            'https://i.postimg.cc/sQ2X1ZXx/6.jpg',
+            'https://i.postimg.cc/G4k9fCVL/7.jpg',
+            'https://i.postimg.cc/d763q9Jg/8.jpg',
+            'https://i.postimg.cc/JDdhX4Dq/9.jpg',
+            'https://i.postimg.cc/w37MpJZb/10.jpg',
+            'https://i.postimg.cc/K4wzvjyc/11.jpg',
+            'https://i.postimg.cc/kBS5VCnQ/12.jpg'
+        ];
+
+        // Duplicate each element of the array, so images have pairs
+        sourcesArray = sourcesArray.concat(sourcesArray);
+
+
+        // EVENT LISTENERS
+
+        // Start game on window load
+        window.addEventListener('load', function() {
+        
+            // Shuffle the image sources
+            let shuffledSources = shuffleArray(sourcesArray);
+            // For each image source, create a card element
+            for (i = 0; i < shuffledSources.length; i++) {
+                generateCardElement(shuffledSources[i]);
+            };
+        
+            // Then add a 'On Click' playing function for all cards:
+            for (i = 0; i < images.length; i++) {
+                images[i].addEventListener('click', function (e) {
+                
+                    // If player hasn't clicked any card, then the function works, otherwise must wait for the end of the function
+                    if (flagClicked == false) {
+                        flagClicked = true;
+                        // If the target is a card faced back, the card rotate
+                        if (e.target.classList.contains('image__back')) {
+                            rotateOnClick(e.target);
+                            // If it's the first card of the turn, the card info is stored in the first object
+                            if (flagFirstPictureClicked == false) {
+                                first.element = e.target.nextElementSibling;
+                                first.source = e.target.nextElementSibling.src;
+                                flagFirstPictureClicked = true;
+                                setTimeout(function () { flagClicked = false; }, 800);
+                            } else {
+                                // If it's the second card of the turn, the card info is stored in the second object
+                                second.element = e.target.nextElementSibling;
+                                second.source = e.target.nextElementSibling.src;
+                                // Then the function evaluates if it's a match or no
+                                // If it is, the cards are replaced from the DOM with blank elements of same size and after a while the variables are cleared
+                                if (first.source == second.source) {
+                                    setTimeout(function () {
+                                        replaceFromDOM(first.element.parentElement);
+                                        replaceFromDOM(second.element.parentElement);
+                                        clearVariables();
+                                    }, 700);
+                                } else {
+                                    // If not, all cards are turned to it's back again, and after a while the variables are also cleared
+                                    setTimeout(function () {
+                                        turnAllCardsBack();
+                                        clearVariables();
+                                    }, 700);
+                                };
+                                // After rotating the card and evaluating either first or second click, player can click again after a while, and a function checks if the player has won
+                                setTimeout(function () {
+                                    flagClicked = false;
+                                    checkWin()
+                                }, 800);
+                            };
+                        };
+                    };
+                });
+            };
+        
+        });
+
+
+        // FUNCTIONS
+
+        // Rotate the selected card
+        function rotateOnClick(element) {
+            element.nextElementSibling.classList.toggle('rotate-180');
+            element.classList.toggle('rotate180');
+        };
+
+        // Turn all cards back
+        function turnAllCardsBack() {
+            for (i = 0; i < images.length; i++) {
+                if (images[i].firstChild.classList.contains('rotate180')) {
+                    images[i].firstChild.classList.remove('rotate180');
+                };
+                if (images[i].lastChild.classList.contains('rotate-180')) {
+                    continue;
+                } else {
+                    images[i].lastChild.classList.add('rotate-180');
+                };
+            };
+        };
+
+        // Replace element with a blank element of same size
+        function replaceFromDOM(element) {
+            let newElement = document.createElement('div');
+            newElement.classList.add('blank')
+            element.replaceWith(newElement);
+        };
+
+        // Clear the Clicked Flag
+        function clearFlagClicked() {
+            flagClicked = false;
+        };
+
+        // Clear all objects and variables
+        function clearVariables() {
+            flagFirstPictureClicked = false;
+            first.element = undefined;
+            first.source = undefined;
+            second.element = undefined;
+            second.source = undefined;
+        };
+
+        // Generate card element
+        function generateCardElement(source) {
+            let imageDiv = document.createElement('div'),
+                backDiv = document.createElement('div'),
+                frontImg = document.createElement('img');
+        
+            imageDiv.classList.add('image');
+            backDiv.classList.add('image__back');
+            frontImg.classList.add('image__front', 'rotate-180');
+            frontImg.setAttribute('src', source);
+        
+            imageDiv.appendChild(backDiv);
+            imageDiv.appendChild(frontImg);
+            container.appendChild(imageDiv);
+        };
+
+        // ES6 Durstenfeld Shuffle function for shuffling arrays
+        function shuffleArray(oldArray) {
+            let array = oldArray;
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            };
+            return array;
+        };
+
+        function checkWin() {
+            if (images.length == 0) {
+                window.alert('Congratulations! You won!');
+            };
+        };
+
+    </script>
+
+</body>
+
+</html>
